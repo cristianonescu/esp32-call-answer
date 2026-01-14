@@ -18,6 +18,14 @@
 - ✅ No phone modification needed
 - ✅ Battery-powered friendly (low power when idle)
 
+## How it works?
+- power-up ESP32
+- Open Phone (Android/iOS) Bluetooth Settings
+- Connect to ESP32 Call Buttons
+- Wait for a phone call
+- Press whatever you attached to GPIO12 to answer
+- Press whatever you attached to GPIO14 to hangup or decline call
+
 ## Wiring
 ![ESP-32 pinout.](https://github.com/cristianonescu/esp32-call-answer/blob/main/pinout.png?raw=true)
 - ESP32 GPIO12 ← Answer Button ← GND
@@ -43,7 +51,7 @@ Latest Release: https://github.com/cristianonescu/esp32-call-answer/releases/
 - `pip install esptool`
 - `esptool.py --chip esp32 --port COM3 write_flash 0x0 esp32-call-buttons.bin` (download the bin from Releases)
 
-###Flash Instructions for Users
+### Flash Instructions for Users
 ## Method 1: ESPTool (Recommended)
 - `esptool.py --chip esp32 --port COM3 --baud 921600 write_flash 0x0 esp32-call-buttons.bin`
 - Linux/Mac: `esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 921600 write_flash 0x0 esp32-call-buttons.bin`
