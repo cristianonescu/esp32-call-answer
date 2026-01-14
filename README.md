@@ -15,6 +15,7 @@
 - ✅ Battery-powered friendly (low power when idle)
 
 ## Wiring
+![ESP-32 pinout.](https://github.com/cristianonescu/esp32-call-answer/blob/main/pinout.png?raw=true)
 - ESP32 GPIO12 ← Answer Button ← GND
 - ESP32 GPIO14 ← Hangup Button ← GND
 
