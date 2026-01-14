@@ -8,7 +8,11 @@
 - People that cannot use touchscreens
 
 ## Features
-- ✅ Answer/reject calls (GPIO 12/14)
+# ESP32 Hands-Free Profile (HFP) client for call control buttons. Answer/hangup incoming calls via physical buttons on both Android & iPhone. Pure ESP-IDF Classic Bluetooth implementation.
+- 📞 **Answer GPIO 12** | **Hangup GPIO 14**
+- ✅ Works with cellular, FaceTime, WhatsApp calls
+- ⚡ No audio routing - pure call control
+- 🔌 Plug & pair - automatic HFP connection during calls
 - ✅ Works with Android & iPhone  
 - ✅ Automatic HFP connection during calls
 - ✅ No phone modification needed
