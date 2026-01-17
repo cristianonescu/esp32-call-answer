@@ -19,6 +19,8 @@
 
 static esp_hf_client_connection_state_t hf_state = ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED;
 static int call_status = 0;  // 0=idle, 1=active
+static esp_bd_addr_t last_bda = {0};
+static bool has_last_bda = false;
 
 static void gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
 static void hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t *param);
@@ -47,6 +49,13 @@ static void hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
     case ESP_HF_CLIENT_CONNECTION_STATE_EVT:
         hf_state = param->conn_stat.state;
         ESP_LOGI(TAG, "=== HFP STATE: %d ===", hf_state);
+		if (param->conn_stat.state == ESP_HF_CLIENT_CONNECTION_STATE_CONNECTED) {
+		            memcpy(last_bda, param->conn_stat.remote_bda, sizeof(esp_bd_addr_t));
+		            has_last_bda = true;
+		            ESP_LOGI(TAG, "Saved AG addr %02x:%02x:%02x:%02x:%02x:%02x",
+		                     last_bda[0], last_bda[1], last_bda[2],
+		                     last_bda[3], last_bda[4], last_bda[5]);
+		        }
         break;
 
     case ESP_HF_CLIENT_CIND_CALL_EVT:
@@ -61,10 +70,29 @@ static void hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
     case ESP_HF_CLIENT_RING_IND_EVT:
         ESP_LOGI(TAG, "📞 RINGING! Press ANSWER!");
         break;
-
+	case ESP_HF_CLIENT_AUDIO_STATE_EVT:
+	    ESP_LOGI(TAG, "Audio state: %d (no SCO handling)", param->audio_stat.state);
+	    break;
     default:
         ESP_LOGD(TAG, "HFP event: %d", event);
         break;
+    }
+}
+
+static void hfp_reconnect_task(void *arg)
+{
+    while (1) {
+        if (has_last_bda &&
+            hf_state == ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED) {
+
+            ESP_LOGI(TAG, "Trying HFP reconnect...");
+            esp_err_t ret = esp_hf_client_connect(last_bda);
+            ESP_LOGI(TAG, "esp_hf_client_connect: %s", esp_err_to_name(ret));
+            // Don’t spam – wait a bit
+            vTaskDelay(pdMS_TO_TICKS(10000));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(2000));
+        }
     }
 }
 
@@ -121,6 +149,7 @@ void app_main(void)
 
     // GAP
     esp_bt_gap_register_callback(gap_event_handler);
+	xTaskCreate(hfp_reconnect_task, "hfp_reconnect", 4096, NULL, 5, NULL);
     ESP_ERROR_CHECK(esp_bt_gap_set_device_name("ESP32 Call Buttons"));
     esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
 
